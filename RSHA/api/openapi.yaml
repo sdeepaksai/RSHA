@@ -1,0 +1,48 @@
+openapi: 3.0.0
+info:
+  title: RSHA - RFID Slaughterhouse Platform
+  version: 1.0.0
+
+paths:
+  /api/v1/livestock/{tagId}/status:
+    get:
+      summary: Get current status of livestock/carcass/pack by tagId
+      parameters:
+        - name: tagId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Status found
+        '404':
+          description: Not found
+
+  /api/v1/livestock/{tagId}/history:
+    get:
+      summary: Get full checkpoint history for a tagId
+      parameters:
+        - name: tagId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: History list
+
+  /api/v1/traceability/{packCode}:
+    get:
+      summary: Resolve packCode to full genealogy chain
+      parameters:
+        - name: packCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Traceability chain
+        '404':
+          description: Not found

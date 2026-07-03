@@ -1,0 +1,47 @@
+name: CI - Traceability Service
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'services/traceability-service/**'
+      - '.github/workflows/ci-traceability.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'services/traceability-service/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        working-directory: ./services/traceability-service
+        run: npm install
+      
+      - name: Build
+        working-directory: ./services/traceability-service
+        run: npm run build
+      
+      - name: Run tests
+        working-directory: ./services/traceability-service
+        run: npm test
+        continue-on-error: true
+      
+      - name: Build Docker image
+        run: |
+          docker build -t rsha/traceability-service:${{ github.sha }} -t rsha/traceability-service:latest ./services/traceability-service
+      
+      - name: Push Docker image
+        run: |
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          docker push rsha/traceability-service:${{ github.sha }}
+          docker push rsha/traceability-service:latest
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'

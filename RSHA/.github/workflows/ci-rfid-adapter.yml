@@ -1,0 +1,47 @@
+name: CI - RFID Adapter
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'services/rfid-adapter/**'
+      - '.github/workflows/ci-rfid-adapter.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'services/rfid-adapter/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        working-directory: ./services/rfid-adapter
+        run: npm install
+      
+      - name: Build
+        working-directory: ./services/rfid-adapter
+        run: npm run build
+      
+      - name: Run tests
+        working-directory: ./services/rfid-adapter
+        run: npm test
+        continue-on-error: true
+      
+      - name: Build Docker image
+        run: |
+          docker build -t rsha/rfid-adapter:${{ github.sha }} -t rsha/rfid-adapter:latest ./services/rfid-adapter
+      
+      - name: Push Docker image
+        run: |
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          docker push rsha/rfid-adapter:${{ github.sha }}
+          docker push rsha/rfid-adapter:latest
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'

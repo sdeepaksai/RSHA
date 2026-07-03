@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rfid-adapter
+  namespace: rsha
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rfid-adapter
+  template:
+    metadata:
+      labels:
+        app: rfid-adapter
+    spec:
+      containers:
+        - name: rfid-adapter
+          image: sdeepaksai/rfid-adapter:1.0.0
+          ports:
+            - containerPort: 3002
+          env:
+            - name: DB_HOST
+              value: postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rfid-adapter
+  namespace: rsha
+spec:
+  selector:
+    app: rfid-adapter
+  ports:
+    - port: 80
+      targetPort: 3002
